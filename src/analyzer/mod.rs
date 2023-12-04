@@ -8,14 +8,15 @@ mod types;
 use indexmap::{IndexMap, IndexSet};
 use std::{
     collections::HashSet,
-    fmt::format,
+    fs,
     fs::File,
-    io::{BufReader, Read},
-    mem,
-    path::{Path, PathBuf},
+    io::Read,
 };
 
-use xml::{EventReader, ParserConfig};
+use xml::{
+    EventReader,
+    ParserConfig
+};
 
 use crate::{
     declarations::{Class, Namespace, Param, Type, Var},
@@ -60,11 +61,37 @@ impl Analyzer {
         }
     }
 
-    pub fn analyze_repository(&mut self, module: &str, version: &str) {
+    pub fn analyze_repository(&mut self, module: &str, version: &str, everything: &bool) {
+        if everything == &true {
+            let list_files = self.all_girs_vec("/usr/share/gir-1.0/");
+            eprintln!("Creating stubs for these files:\n{:?}", list_files);
+            for fname in list_files {
+                eprintln!("{}{}", &"| ".repeat(self.depth), fname);
+                let gir = match File::open(&fname) {
+                    Ok(file) => file,
+                    Err(e) => {
+                            eprintln!("Error with file \"{}\": {}", GIR_PATH.to_string() + &fname, e);
+                            return;
+                        }
+                    };
+                    let ns = self.analyze(gir);
+                    self.depth -= 1;
+            
+                    self.namespaces.insert(ns);
+                    return;
+            }
+        }
         eprintln!("{}{} v{}", &"| ".repeat(self.depth), module, version);
         self.depth += 1;
         let fname = format!("{}-{}.gir", module, version);
-        let gir = File::open(GIR_PATH.to_string() + &fname).unwrap();
+        let gir = match File::open(GIR_PATH.to_string() + &fname) {
+            Ok(file) => file,
+            Err(e) => {
+                    eprintln!("Error with file \"{}\": {}", GIR_PATH.to_string() + &fname, e);
+                    return;
+                }
+            };
+
         // let file = BufReader::new(file);
 
         let ns = self.analyze(gir);
@@ -93,7 +120,7 @@ impl Analyzer {
         while ev.below(depth)? {
             if let Some((name, version)) = self.try_an_include(ev)? {
                 if !self.namespaces.contains(name.as_str()) {
-                    self.analyze_repository(&name, &version);
+                    self.analyze_repository(&name, &version, &false);
                 }
                 imports.insert(name);
             }
@@ -215,5 +242,25 @@ impl Analyzer {
         Event::consume(tree, |e| self.try_a_repository(e))
             .unwrap()
             .unwrap()
+    }
+
+    fn all_girs_vec(&mut self, path: &str) -> Vec<String> {
+        let file_paths: Vec<String> = match fs::read_dir(path) {
+            Ok(entries) => {
+                entries
+                    .filter_map(|entry| {
+                        match entry {
+                            Ok(entry) => Some(entry.path().display().to_string()),
+                            Err(_) => None,
+                        }
+                    })
+                    .collect()
+            }
+            Err(e) => {
+                eprintln!("Error reading directory: {}", e);
+                Vec::new()
+            }
+        };    
+        return file_paths;
     }
 }
