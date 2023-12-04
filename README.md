@@ -35,6 +35,8 @@ The `*.gir` with the type info files should be included with each GNOME library 
 
 If you wanted to install stubs for libadwaita, run `gengir Adw-1`. If you're using a venv you'll need to run gengir inside the venv. With poetry for example just run `poetry run gengir Module-x`.
 
+To install stubs for every library use `gengir` with no arguments.
+
 ```
 USAGE:
     gengir [OPTIONS] [MODULES]...
