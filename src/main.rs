@@ -77,11 +77,14 @@ fn main() -> io::Result<()> {
     create_stub_tree(&out_dir)?;
 
     let mut analyzer = Analyzer::new(cli.no_docs);
-
-    for gir in cli.modules {
-        let split: Vec<_> = gir.split('-').take(2).collect();
-        if split.len() == 2 {
-            analyzer.analyze_repository(split[0], split[1]);
+    if cli.modules.len() == 0 {
+        analyzer.analyze_repository("", "", &true);
+    } else {
+        for gir in cli.modules {
+            let split: Vec<_> = gir.split('-').take(2).collect();
+            if split.len() == 2 {
+                analyzer.analyze_repository(split[0], split[1], &false);
+            }
         }
     }
 
