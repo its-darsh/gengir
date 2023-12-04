@@ -32,7 +32,7 @@ impl Analyzer {
 
         let name = safe_name(attrs.get_must("name")?);
         let mut bases = Vec::new();
-        let mut fields = Vec::new();
+        let fields = Vec::new();
         let mut methods = IndexSet::new();
         let mut doc = None;
 
