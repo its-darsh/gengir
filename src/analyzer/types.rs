@@ -84,16 +84,6 @@ pub fn class_or_type_to_native(type_name: &str) -> Type {
 const TYPE_TAG: &str = "type";
 
 impl Analyzer {
-    pub fn try_an_type(&self, ev: &mut Event) -> TagResult<&'static Type> {
-        let (depth, attrs, ..) = tag_matches!(ev, TYPE_TAG);
-
-        while ev.below(depth)? {}
-
-        Ok(Some(
-            attrs.get("name").map_or(&ANY, |s| glib_to_native_type(&s)),
-        ))
-    }
-
     pub fn try_an_type_like_tag(&self, tag: &str, ev: &mut Event) -> TagResult<Type> {
         let (depth, attrs, ..) = tag_matches!(ev, tag);
 
