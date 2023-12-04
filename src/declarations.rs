@@ -130,24 +130,8 @@ impl Function {
             doc: doc.map(|s| String::from(s)),
         })
     }
-    pub fn add_variadic_param<'a>(
-        self,
-        name: &str,
-        typ: Type,
-        doc: impl Into<Option<&'a str>>,
-    ) -> Self {
-        let doc: Option<&str> = doc.into();
-        self.add_param(Param::Variadic {
-            name: name.into(),
-            typ,
-            doc: doc.map(|s| String::from(s)),
-        })
-    }
     pub fn add_self_param(self) -> Self {
         self.add_param(Param::Instance)
-    }
-    pub fn add_star_param(self) -> Self {
-        self.add_param(Param::Star)
     }
 }
 
